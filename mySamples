@@ -1,0 +1,143 @@
+public class InputValue {
+	public String id;
+	public int length;
+	public int startTime;
+	public String location;
+	
+	public InputValue(String id, int length, int startTime, String location) {
+		super();
+		this.id = id;
+		this.length = length;
+		this.startTime = startTime;
+		this.location = location;
+	}
+}
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;n
+import java.util.List;
+import java.util.Map;
+
+public class Solution {
+	
+	private double finalSum;
+	
+    private Map<String, String> finalContents;
+
+	public Solution(){
+		finalSum = 0;    //Calculate the sum of the (areaWeight * contentValue)
+		finalContents = new HashMap<String, String>();   //use a hashmap to save which content will be showed in which area
+	}
+	/**
+	 * Part II Selection
+	 * @param contents: List<InputValue> contents: a LIST that saves all the contents
+	 * @param areaWeight: Map<String, Double> areaWeight: a HASHMAP that saves areaID and areaWeight
+	 * @param contentValues: Map<String, Integer> contentValues: a HASHMAP that saves contentID and contentValue
+	 * @param timePoint: a given time point.
+	 */
+	public void selection(List<InputValue> contents, Map<String, Double> areaWeight, Map<String, Integer> contentValues, int timePoint){
+		//Step1, find all the contents at specific time point
+		List <Item> calculatedContents = new ArrayList<Item>();   //to save calculated contents and its value* area weight (remember to private Item)
+		for (InputValue content : contents){
+			// If the startTime of the content plus its length >= the given time point, we think this content is at the specific time point.
+			if (content.startTime + content.length >= timePoint){
+				
+				double weight = areaWeight.get(content.location);  //get the area weight
+				int value = contentValues.get(content.id);  //get the content value
+				
+				double total = weight * value;  //calculate the total value of weight * value to use in the further steps
+				
+				calculatedContents.add(new Item(content, total));  //add satisfied contents(at the given time point) and its total value to the calculatedContents list
+			}
+		}
+		//Step2, sort calculated contents
+		Collections.sort(calculatedContents, new Comparator<Item>(){  //use Collections interface, to make the contents sort in descending order
+
+			@Override
+			public int compare(Item o1, Item o2) {
+				if (o1.getValue() == o2.getValue()){
+					return 0;
+				}
+				else if (o1.getValue() > o2.getValue()) {
+					return -1;
+				}
+				else {
+					return 1;
+				}
+			}
+		});
+		
+		//Step3, select proper contents for each area according to the order
+		for (Item item:calculatedContents){
+			InputValue content = item.getContent();
+			//If the content has not been selected and the area of which content is in is free, then we can choose this content
+			if (!finalContents.containsKey(content.location) && !finalContents.containsValue(content.id)){
+				finalContents.put(content.location, content.id);  //if satisfies, put the content into the hashmap
+				
+				finalSum += item.getValue();  //calculate the sum		
+			}
+		}		
+	}
+	
+	
+	
+	public double getFinalSum() {
+		return finalSum;
+	}
+
+	public Map<String, String> getFinalContents() {
+		return finalContents;
+	}
+
+
+
+	private class Item {
+		private InputValue content;
+		private double value;
+		
+		public Item(InputValue content, double value) {
+			super();
+			this.content = content;
+			this.value = value;
+		}
+		
+		public InputValue getContent() {
+			return content;
+		}
+		public double getValue() {
+			return value;
+		}
+		
+	}
+
+	
+	public static void main(String[] args) {
+		Solution solution = new Solution();
+
+		Map<String, Double> areaWeight = new HashMap<>();
+		areaWeight.put("1", 1.0);
+		areaWeight.put("2", 0.8);
+
+		Map<String, Integer> contentValues = new HashMap<>();
+		contentValues.put("c1", 100);
+		contentValues.put("c5", 80);
+		contentValues.put("c7", 120);
+
+		List<InputValue> contents = new ArrayList<>();
+		contents.add(new InputValue("c1", 4, 1, "1"));
+		contents.add(new InputValue("c5", 4, 2, "1"));
+		contents.add(new InputValue("c7", 8, 3, "1"));
+		contents.add(new InputValue("c1", 4, 1, "2"));
+		contents.add(new InputValue("c5", 4, 2, "2"));
+		contents.add(new InputValue("c7", 8, 3, "2"));
+
+		solution.selection(contents, areaWeight, contentValues, 3);
+
+		System.out.println(solution.getFinalSum());
+		System.out.println(solution.getFinalContents());
+	}
+	
+
+}
